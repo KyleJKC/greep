@@ -1,16 +1,16 @@
 import greenfoot.*;  // (World, Actor, GreenfootImage, and Greenfoot)
-import java.util.List;
 
 /**
  * A Greep is an alien creature that likes to collect tomatoes.
  * 
  * @Kyle Jin
- * @Nov 28, 2023
+ * @Last Edit: 12/2/23
  */
 public class Greep extends Creature
 {
     // Remember: you cannot extend the Greep's memory. So:
     // no additional fields (other than final fields) allowed in this class!
+    private final int TURN_ANGLE = 69;
     
     /**
      * Default constructor for testing purposes.
@@ -51,15 +51,26 @@ public class Greep extends Creature
     */
     private void searchForTomatoes()
     {
-        TomatoPile tomatoes = (TomatoPile) getOneIntersectingObject(TomatoPile.class);
-        if(tomatoes == null){
-            moveFollowPaint();
-        } else{
-            if(isTouching(Greep.class)){
-                loadTomato();
-            } else{
-                meetWithCompanion();
+        if(atFood()){
+            checkFood();
+            TomatoPile tomatoes = (TomatoPile) getOneIntersectingObject(TomatoPile.class);
+            if(tomatoes!=null){
+                int dX = tomatoes.getX() - getX();
+                int dY = tomatoes.getY() - getY();
+                setRotation((int) (180 * Math.atan2(dY, dX) /Math.PI));
+                move();
             }
+            move();
+        }
+        if(atWater()||atWorldEdge()){
+            turn(TURN_ANGLE);
+        }
+        if (seePaint("purple")) {
+            followPaint();
+            move();
+        } else {
+            spit("orange");
+            move();
         }
     }
     
@@ -71,15 +82,24 @@ public class Greep extends Creature
         if(atShip()) 
         {
             dropTomato();
+            turn(180);
         }
         else 
         {
-            turnHome();
-            if(atWater()||atWorldEdge()){
-                turn(120);
+            spit("purple");
+            if(atWater()){
+                setFlag(1, true);
+                turn(23);
+            }
+            if(!getFlag(1)){
+                turnHome();
+            }
+            if(getMemory()==21){
+                setFlag(1, false);
+                setMemory(0);
             }
             move();
-            spit("red");
+            setMemory(getMemory()+1);
         }
     }
     
@@ -92,72 +112,19 @@ public class Greep extends Creature
         TomatoPile tomatoes = (TomatoPile) getOneIntersectingObject(TomatoPile.class);
         if(tomatoes != null) 
         {
+            
             loadTomato();
 
             // Note: this attempts to load a tomato onto *another* Greep. It won't
             // do anything if we are alone here.
         }
     }
-
-    private void meetWithCompanion(){
-        
-        if(getMemory() == 4){
-            move();
-            setMemory(0);
-        } else {
-            setMemory(getMemory() + 1);
-        }
-        System.out.println("executed0");
-        
-        Greep closestGreep = null;
-        List<Greep> greepList = getObjectsInRange(20, Greep.class);
-        double closestDistance = Double.MAX_VALUE;
-        for(Greep greep : greepList){
-            double distance = getDistance(greep);
-            if(distance < closestDistance){
-                closestDistance = distance;
-                closestGreep = greep;
-                System.out.println("executed1");
-            }
-        }
-        if(closestGreep!=null){
-            turnTowards(closestGreep.getX(), closestGreep.getY());
-            move();
-            System.out.println("executed2");
-        }
+    
+    private void followPaint() {
+        turnHome();
+        turn(180);
     }
     
-    private void moveFollowPaint(){
-        List<Paint> paintList = getObjectsInRange(20, Paint.class);
-        Paint closestPaint = null;
-        double closestDistance = Double.MAX_VALUE;
-        if(paintList != null && closestPaint != null){
-            move();
-            if(atWater()||atWorldEdge()){
-                turn(60);
-            }
-        } else  {
-        for(Paint paint : paintList){
-            double distance = getDistance(paint);
-            if(distance < closestDistance){
-                closestDistance = distance;
-                closestPaint = paint;
-                System.out.println("executed1");
-            }
-        }
-        if(closestPaint!=null){
-            turnTowards(closestPaint.getX(), closestPaint.getY());
-            move();
-            System.out.println("executed2");
-        }
-        }
-    }
-    
-    private double getDistance(Actor actor) {
-        int dx = this.getX() - actor.getX();
-        int dy = this.getY() - actor.getY();
-        return Math.sqrt(dx * dx + dy * dy);
-    }
     /**
      * This method specifies the name of the author (for display on the result board).
      */
@@ -178,5 +145,4 @@ public class Greep extends Creature
         else
             return "greep.png";
     }
-
 }
