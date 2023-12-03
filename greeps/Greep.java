@@ -10,7 +10,6 @@ public class Greep extends Creature
 {
     // Remember: you cannot extend the Greep's memory. So:
     // no additional fields (other than final fields) allowed in this class!
-    private final int TURN_ANGLE = 69;
     
     /**
      * Default constructor for testing purposes.
@@ -63,7 +62,7 @@ public class Greep extends Creature
             move();
         }
         if(atWater()||atWorldEdge()){
-            turn(TURN_ANGLE);
+            turn(69);
         }
         if (seePaint("purple")) {
             followPaint();
